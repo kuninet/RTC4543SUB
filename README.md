@@ -6,6 +6,7 @@
     * 秋月電子「３２ｋＨｚ出力シリアルＲＴＣ基板モジュール」([https://akizukidenshi.com/catalog/g/gK-10722/](https://akizukidenshi.com/catalog/g/gK-10722/))を使用します。
 
 <br>
+
 ## サンプルアプリ
 
 srcディレクトリに以下のサンプルアプリがあります。
