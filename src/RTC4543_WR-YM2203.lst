@@ -1,0 +1,272 @@
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_WR-YM2203.asm - Page 1 - 2021/04/09 20時29分13秒
+
+
+       1/       0 :                     ;
+       2/       0 :                     ; RTC4543SA WRITE (YM2203 Board for PC-8001)
+       3/       0 :                     ;
+       4/    A000 :                         org 0A000h
+       5/    A000 :                     ;
+       6/    A000 :                     ; N-BASICのUSR関数で呼ぶ
+       7/    A000 :                     ;
+       8/    A000 :                     
+       9/    A000 :                     ; 入力パラメーター
+      10/    A000 :                     ;   DE   : ストリングディスクリプタアドレス
+      11/    A000 :                     ;   ストリングディスクリプタ
+      12/    A000 :                     ;   +00 - 文字列長
+      13/    A000 :                     ;   +01 - 文字格納アドレス下位バイト
+      14/    A000 :                     ;   +02 - 文字格納アドレス上位バイト
+      15/    A000 :                     ;
+      16/    A000 :                     
+      17/    A000 :                     
+      18/    A000 : =0H                 NULL    EQU 00h
+      19/    A000 :                     ;
+      20/    A000 : =80H                OPN_CTL EQU 080h
+      21/    A000 : =81H                OPN_DATA EQU 081h
+      22/    A000 : =80H                OPN_B_OUT EQU 080h
+      23/    A000 : =40H                OPN_A_OUT EQU 040h
+      24/    A000 : =7FH                OPN_B_IN EQU 07Fh
+      25/    A000 : =0BFH               OPN_A_IN EQU 0BFh
+      26/    A000 : =7H                 OPN_REG_CTL  EQU 07h
+      27/    A000 : =0EH                OPN_REG_IOA  EQU 0Eh
+      28/    A000 : =0FH                OPN_REG_IOB  EQU 0Fh
+      29/    A000 :                     ;
+      30/    A000 : =40H                CE_ON   EQU 040h
+      31/    A000 : =0BFH               CE_OFF  EQU 0BFh
+      32/    A000 : =20H                WR_ON   EQU 020h
+      33/    A000 : =0DFH               WR_OFF  EQU 0DFh
+      34/    A000 : =10H                CLK_ON  EQU 010h
+      35/    A000 : =0EFH               CLK_OFF EQU 0EFh
+      36/    A000 :                     ;
+      37/    A000 :                     START:
+      38/    A000 : ED 53 CF A0             LD (STR_PTR),DE
+      39/    A004 : 1A                      LD A,(DE)
+      40/    A005 : 32 D1 A0                LD (STR_LEN),A
+      41/    A008 : 13                      INC DE
+      42/    A009 : 1A                      LD A,(DE)
+      43/    A00A : 6F                      LD L,A
+      44/    A00B : 13                      INC DE
+      45/    A00C : 1A                      LD A,(DE)
+      46/    A00D : 67                      LD H,A
+      47/    A00E : 22 CD A0                LD (DATE_STR_PTR),HL
+      48/    A011 : CD 15 A0                CALL MAIN
+      49/    A014 : C9                      RET
+      50/    A015 :                     ;
+      51/    A015 :                     ;------------------------------------
+      52/    A015 :                     ; 処理メイン
+      53/    A015 :                     ;------------------------------------
+      54/    A015 :                     MAIN:
+      55/    A015 : CD AC A0                CALL INIT_OPN
+      56/    A018 : CD 70 A0                CALL WR_ON_SET
+      57/    A01B : CD 8E A0                CALL CE_ON_SET
+      58/    A01E :                     ;
+      59/    A01E : 2A CD A0                LD HL,(DATE_STR_PTR)
+      60/    A021 : 06 0D                   LD B,13
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_WR-YM2203.asm - Page 2 - 2021/04/09 20時29分13秒
+
+
+      61/    A023 : 11 0C 00                LD DE,12
+      62/    A026 : 19                      ADD HL,DE      ; 指定文字列の最後をポイント
+      63/    A027 :                     ;
+      64/    A027 :                     _MAIN_LOOP:
+      65/    A027 : 7E                      LD A,(HL)
+      66/    A028 : D6 30                   SUB A,30h       ; 数字の文字コードをBCDへ
+      67/    A02A :                     ;
+      68/    A02A : 0E 04                   LD C,4          ; 4bit分処理
+      69/    A02C :                     _OUT_LOOP:
+      70/    A02C : CB 0F                   RRC A
+      71/    A02E : DA 36 A0                JP C,_ON_OUT
+      72/    A031 : F5                      PUSH AF
+      73/    A032 : 3E 00                   LD A,00h
+      74/    A034 : 18 03                   JR _RTC_OUT
+      75/    A036 :                     _ON_OUT:
+      76/    A036 : F5                      PUSH AF
+      77/    A037 : 3E 01                   LD A,01h
+      78/    A039 :                     _RTC_OUT:
+      79/    A039 : F5                      PUSH AF
+      80/    A03A : 3E 0E                   LD A,OPN_REG_IOA
+      81/    A03C : D3 80                   OUT (OPN_CTL),A
+      82/    A03E : F1                      POP AF
+      83/    A03F :                     ;
+      84/    A03F : D3 81                   OUT (OPN_DATA),A
+      85/    A041 : CD 53 A0                CALL CLK1       ; 1Clock
+      86/    A044 : F1                      POP AF
+      87/    A045 : 0D                      DEC C
+      88/    A046 : 20 E4                   JR NZ,_OUT_LOOP
+      89/    A048 :                     ;
+      90/    A048 : 2B                      DEC HL
+      91/    A049 : 05                      DEC B
+      92/    A04A : 20 DB                   JR NZ,_MAIN_LOOP
+      93/    A04C :                     ;
+      94/    A04C : CD 9D A0                CALL CE_OFF_SET
+      95/    A04F : CD 7F A0                CALL WR_OFF_SET
+      96/    A052 :                     ;
+      97/    A052 : C9                      RET
+      98/    A053 :                     ;
+      99/    A053 :                     ;------------------------------------
+     100/    A053 :                     ; 1クロック ON→OFF
+     101/    A053 :                     ;------------------------------------
+     102/    A053 :                     CLK1:
+     103/    A053 : 3E 0F                   LD A,OPN_REG_IOB
+     104/    A055 : D3 80                   OUT (OPN_CTL),A
+     105/    A057 :                     ;
+     106/    A057 : 3A D3 A0                LD A,(OPN_IOB_DATA)
+     107/    A05A : F6 10                   OR CLK_ON
+     108/    A05C : D3 81                   OUT (OPN_DATA),A
+     109/    A05E : F5                      PUSH AF
+     110/    A05F : 7F                      LD A,A          ; DUMMY
+     111/    A060 : 7F                      LD A,A          ; DUMMY
+     112/    A061 : 7F                      LD A,A          ; DUMMY
+     113/    A062 : 7F                      LD A,A          ; DUMMY
+     114/    A063 : 3E 0F                   LD A,OPN_REG_IOB
+     115/    A065 : D3 80                   OUT (OPN_CTL),A
+     116/    A067 : F1                      POP AF
+     117/    A068 : E6 EF                   AND CLK_OFF
+     118/    A06A : D3 81                   OUT (OPN_DATA),A
+     119/    A06C : 32 D3 A0                LD (OPN_IOB_DATA),A
+     120/    A06F : C9                      RET
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_WR-YM2203.asm - Page 3 - 2021/04/09 20時29分13秒
+
+
+     121/    A070 :                     
+     122/    A070 :                     ;------------------------------------
+     123/    A070 :                     ; WRピン ON
+     124/    A070 :                     ;------------------------------------
+     125/    A070 :                     WR_ON_SET:
+     126/    A070 : 3E 0F                   LD A,OPN_REG_IOB
+     127/    A072 : D3 80                   OUT (OPN_CTL),A
+     128/    A074 :                     ;    
+     129/    A074 : 3A D3 A0                LD A,(OPN_IOB_DATA)
+     130/    A077 : F6 20                   OR WR_ON
+     131/    A079 : D3 81                   OUT (OPN_DATA),A
+     132/    A07B : 32 D3 A0                LD (OPN_IOB_DATA),A
+     133/    A07E : C9                      RET
+     134/    A07F :                     ;------------------------------------
+     135/    A07F :                     ; WRピン OFF
+     136/    A07F :                     ;------------------------------------
+     137/    A07F :                     WR_OFF_SET:
+     138/    A07F : 3E 0F                   LD A,OPN_REG_IOB
+     139/    A081 : D3 80                   OUT (OPN_CTL),A
+     140/    A083 :                     ;
+     141/    A083 : 3A D3 A0                LD A,(OPN_IOB_DATA)
+     142/    A086 : E6 DF                   AND WR_OFF
+     143/    A088 : D3 81                   OUT (OPN_DATA),A
+     144/    A08A : 32 D3 A0                LD (OPN_IOB_DATA),A
+     145/    A08D : C9                      RET
+     146/    A08E :                     
+     147/    A08E :                     ;------------------------------------
+     148/    A08E :                     ; CEピン ON
+     149/    A08E :                     ;------------------------------------
+     150/    A08E :                     CE_ON_SET:
+     151/    A08E : 3E 0F                   LD A,OPN_REG_IOB
+     152/    A090 : D3 80                   OUT (OPN_CTL),A
+     153/    A092 :                     ;    
+     154/    A092 : 3A D3 A0                LD A,(OPN_IOB_DATA)
+     155/    A095 : F6 40                   OR CE_ON
+     156/    A097 : D3 81                   OUT (OPN_DATA),A
+     157/    A099 : 32 D3 A0                LD (OPN_IOB_DATA),A
+     158/    A09C : C9                      RET
+     159/    A09D :                     ;------------------------------------
+     160/    A09D :                     ; CEピン OFF
+     161/    A09D :                     ;------------------------------------
+     162/    A09D :                     CE_OFF_SET:
+     163/    A09D : 3E 0F                   LD A,OPN_REG_IOB
+     164/    A09F : D3 80                   OUT (OPN_CTL),A
+     165/    A0A1 :                     ;
+     166/    A0A1 : 3A D3 A0                LD A,(OPN_IOB_DATA)
+     167/    A0A4 : E6 BF                   AND CE_OFF
+     168/    A0A6 : D3 81                   OUT (OPN_DATA),A
+     169/    A0A8 : 32 D3 A0                LD (OPN_IOB_DATA),A
+     170/    A0AB : C9                      RET
+     171/    A0AC :                     
+     172/    A0AC :                     ;------------------------------------
+     173/    A0AC :                     ; OPN初期化 ポートA IN、ポートB OUT
+     174/    A0AC :                     ;------------------------------------
+     175/    A0AC :                     INIT_OPN:
+     176/    A0AC : 3E 07                   LD A,OPN_REG_CTL
+     177/    A0AE : D3 80                   OUT (OPN_CTL),A
+     178/    A0B0 : DB 81                   IN  A,(OPN_DATA)
+     179/    A0B2 : F6 40                   OR  A,OPN_A_OUT
+     180/    A0B4 : F6 80                   OR  A,OPN_B_OUT
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_WR-YM2203.asm - Page 4 - 2021/04/09 20時29分13秒
+
+
+     181/    A0B6 : 32 D2 A0                LD  (OPN_CTL_DATA),A
+     182/    A0B9 : D3 81                   OUT (OPN_DATA),A
+     183/    A0BB :                     ;
+     184/    A0BB : 3E 0F                   LD A,OPN_REG_IOB
+     185/    A0BD : D3 80                   OUT (OPN_CTL),A
+     186/    A0BF : 3E 00                   LD  A,0
+     187/    A0C1 : E6 DF                   AND A,WR_OFF
+     188/    A0C3 : E6 BF                   AND A,CE_OFF
+     189/    A0C5 : D3 81                   OUT (OPN_DATA),A
+     190/    A0C7 : 00                      NOP
+     191/    A0C8 : 00                      NOP
+     192/    A0C9 : 32 D3 A0                LD  (OPN_IOB_DATA),A
+     193/    A0CC :                     ;
+     194/    A0CC : C9                      RET
+     195/    A0CD :                     ;
+     196/    A0CD :                     ; RAM
+     197/    A0CD :                     DATE_STR_PTR DS 2
+     198/    A0CF :                     STR_PTR      DS 2
+     199/    A0D1 :                     STR_LEN      DS 1
+     200/    A0D2 :                     OPN_CTL_DATA DS 1
+     201/    A0D3 :                     OPN_IOB_DATA DS 1
+     202/    A0D4 :                     
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_WR-YM2203.asm - Page 5 - 2021/04/09 20時29分13秒
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+*ARCHITECTURE :  "x86_64-apple-osx" - | *BIGENDIAN :                      0 - |
+*BRANCHEXT :                      0 - | *CASESENSITIVE :                  0 - |
+ CE_OFF :                       0BF - |  CE_OFF_SET :                 0A09D C |
+ CE_ON :                         40 - |  CE_ON_SET :                  0A08E C |
+ CLK1 :                       0A053 C |  CLK_OFF :                      0EF - |
+ CLK_ON :                        10 - | *CONSTPI :        3.141592653589793 - |
+*DATE :                "2021/04/09" - |  DATE_STR_PTR :               0A0CD C |
+*FALSE :                          0 - | *FULLPMMU :                       1 - |
+*HAS64 :                          1 - | *HASDSP :                         0 - |
+*HASFPU :                         0 - | *HASPMMU :                        0 - |
+*INEXTMODE :                      0 - |  INIT_OPN :                   0A0AC C |
+*INLWORDMODE :                    0 - | *INMAXMODE :                      0 - |
+*INSRCMODE :                      0 - | *INSUPMODE :                      0 - |
+*LISTON :                         1 - | *MACEXP :                         7 - |
+ MAIN :                       0A015 C | *MOMCPU :                        80 - |
+*MOMCPUNAME :                 "Z80" - | *NESTMAX :                      100 - |
+*NULL :                           0 - | *OPN_A_IN :                     0BF - |
+ OPN_A_OUT :                     40 - | *OPN_B_IN :                      7F - |
+ OPN_B_OUT :                     80 - |  OPN_CTL :                       80 - |
+ OPN_CTL_DATA :               0A0D2 C |  OPN_DATA :                      81 - |
+ OPN_IOB_DATA :               0A0D3 C |  OPN_REG_CTL :                    7 - |
+ OPN_REG_IOA :                   0E - |  OPN_REG_IOB :                   0F - |
+*PACKING :                        0 - | *PADDING :                        1 - |
+*RELAXED :                        0 - | *START :                      0A000 C |
+ STR_LEN :                    0A0D1 C |  STR_PTR :                    0A0CF C |
+*TIME :               "20\-026\-103\-12629\-027\-120\-12213\-025\-089\-110" - |
+*TRUE :                           1 - | *VERSION :                     142F - |
+ WR_OFF :                       0DF - |  WR_OFF_SET :                 0A07F C |
+ WR_ON :                         20 - |  WR_ON_SET :                  0A070 C |
+*Z80SYNTAX :                      0 - |  _MAIN_LOOP :                 0A027 C |
+ _ON_OUT :                    0A036 C |  _OUT_LOOP :                  0A02C C |
+ _RTC_OUT :                   0A039 C |
+
+     62 symbols
+     33 unused symbols
+
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_WR-YM2203.asm - Page 6 - 2021/04/09 20時29分13秒
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+
+0.01 seconds assembly time
+
+    202 lines source file
+      2 passes
+      0 errors
+      0 warnings

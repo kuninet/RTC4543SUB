@@ -1,0 +1,354 @@
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 1 - 2021/04/09 20時29分13秒
+
+
+       1/       0 :                     ;
+       2/       0 :                     ; RTC4543SA READ (YM2203 Board for PC-8001)
+       3/       0 :                     ;
+       4/       0 :                     ;
+       5/       0 :                     ; N-BASICのUSR関数で呼ぶ
+       6/       0 :                     ;
+       7/       0 :                     
+       8/       0 :                     ; 入力パラメーター
+       9/       0 :                     ;   DE   : ストリングディスクリプタアドレス
+      10/       0 :                     ;   ストリングディスクリプタ
+      11/       0 :                     ;   +00 - 文字列長
+      12/       0 :                     ;   +01 - 文字格納アドレス下位バイト
+      13/       0 :                     ;   +02 - 文字格納アドレス上位バイト
+      14/    A100 :                         org 0A100h
+      15/    A100 :                     ;
+      16/    A100 : =0H                 NULL    EQU 00h
+      17/    A100 :                     ;
+      18/    A100 : =80H                OPN_CTL EQU 080h
+      19/    A100 : =81H                OPN_DATA EQU 081h
+      20/    A100 : =80H                OPN_B_OUT EQU 080h
+      21/    A100 : =40H                OPN_A_OUT EQU 040h
+      22/    A100 : =7FH                OPN_B_IN EQU 07Fh
+      23/    A100 : =0BFH               OPN_A_IN EQU 0BFh
+      24/    A100 : =7H                 OPN_REG_CTL  EQU 07h
+      25/    A100 : =0EH                OPN_REG_IOA  EQU 0Eh
+      26/    A100 : =0FH                OPN_REG_IOB  EQU 0Fh
+      27/    A100 :                     ;
+      28/    A100 : =40H                CE_ON   EQU 040h
+      29/    A100 : =0BFH               CE_OFF  EQU 0BFh
+      30/    A100 : =20H                WR_ON   EQU 020h
+      31/    A100 : =0DFH               WR_OFF  EQU 0DFh
+      32/    A100 : =10H                CLK_ON  EQU 010h
+      33/    A100 : =0EFH               CLK_OFF EQU 0EFh
+      34/    A100 :                     ;
+      35/    A100 :                     ;------------------------------------
+      36/    A100 :                     ; 処理メイン
+      37/    A100 :                     ;------------------------------------
+      38/    A100 :                     MAIN:
+      39/    A100 : 13                      INC DE
+      40/    A101 : 1A                      LD A,(DE)
+      41/    A102 : 6F                      LD L,A
+      42/    A103 : 13                      INC DE
+      43/    A104 : 1A                      LD A,(DE)
+      44/    A105 : 67                      LD H,A
+      45/    A106 :                     ;
+      46/    A106 : CD 22 A2                CALL INIT_OPN
+      47/    A109 : CD F5 A1                CALL WR_OFF_SET
+      48/    A10C : CD 04 A2                CALL CE_ON_SET
+      49/    A10F :                     ;
+      50/    A10F : 11 0C 00                LD DE,12
+      51/    A112 : 19                      ADD HL,DE
+      52/    A113 :                     ;
+      53/    A113 :                     ; 秒 取得 
+      54/    A113 : 0E 04                   LD C,4
+      55/    A115 : CD A2 A1                CALL GET_DATA
+      56/    A118 : CD 9D A1                CALL SET_RESULT
+      57/    A11B : 0E 03                   LD C,3
+      58/    A11D : CD A2 A1                CALL GET_DATA
+      59/    A120 : CD 9D A1                CALL SET_RESULT
+      60/    A123 :                     ; -- FDT受け捨て
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 2 - 2021/04/09 20時29分13秒
+
+
+      61/    A123 : 0E 01                   LD C,1
+      62/    A125 : CD A2 A1                CALL GET_DATA
+      63/    A128 :                     ;
+      64/    A128 :                     ; 分 取得 
+      65/    A128 : 0E 04                   LD C,4
+      66/    A12A : CD A2 A1                CALL GET_DATA
+      67/    A12D : CD 9D A1                CALL SET_RESULT
+      68/    A130 : 0E 03                   LD C,3
+      69/    A132 : CD A2 A1                CALL GET_DATA
+      70/    A135 : CD 9D A1                CALL SET_RESULT
+      71/    A138 :                     ; -- ユーザービット受け捨て
+      72/    A138 : 0E 01                   LD C,1
+      73/    A13A : CD A2 A1                CALL GET_DATA
+      74/    A13D :                     ;
+      75/    A13D :                     ; 時 取得 
+      76/    A13D : 0E 04                   LD C,4
+      77/    A13F : CD A2 A1                CALL GET_DATA
+      78/    A142 : CD 9D A1                CALL SET_RESULT
+      79/    A145 : 0E 02                   LD C,2
+      80/    A147 : CD A2 A1                CALL GET_DATA
+      81/    A14A : CD 9D A1                CALL SET_RESULT
+      82/    A14D :                     ; -- ユーザービット受け捨て
+      83/    A14D : 0E 02                   LD C,2
+      84/    A14F : CD A2 A1                CALL GET_DATA
+      85/    A152 :                     ;
+      86/    A152 :                     ; 曜日 取得 
+      87/    A152 : 0E 03                   LD C,3
+      88/    A154 : CD A2 A1                CALL GET_DATA
+      89/    A157 : CD 9D A1                CALL SET_RESULT
+      90/    A15A :                     ; -- ユーザービット受け捨て
+      91/    A15A : 0E 01                   LD C,1
+      92/    A15C : CD A2 A1                CALL GET_DATA
+      93/    A15F :                     ; 日 取得 
+      94/    A15F : 0E 04                   LD C,4
+      95/    A161 : CD A2 A1                CALL GET_DATA
+      96/    A164 : CD 9D A1                CALL SET_RESULT
+      97/    A167 : 0E 02                   LD C,2
+      98/    A169 : CD A2 A1                CALL GET_DATA
+      99/    A16C : CD 9D A1                CALL SET_RESULT
+     100/    A16F :                     ; -- ユーザービット受け捨て
+     101/    A16F : 0E 02                   LD C,2
+     102/    A171 : CD A2 A1                CALL GET_DATA
+     103/    A174 :                     ;
+     104/    A174 :                     ; 月 取得 
+     105/    A174 : 0E 04                   LD C,4
+     106/    A176 : CD A2 A1                CALL GET_DATA
+     107/    A179 : CD 9D A1                CALL SET_RESULT
+     108/    A17C : 0E 01                   LD C,1
+     109/    A17E : CD A2 A1                CALL GET_DATA
+     110/    A181 : CD 9D A1                CALL SET_RESULT
+     111/    A184 :                     ; -- ユーザービット受け捨て
+     112/    A184 : 0E 03                   LD C,3
+     113/    A186 : CD A2 A1                CALL GET_DATA
+     114/    A189 :                     ;
+     115/    A189 :                     ; 年 取得 
+     116/    A189 : 0E 04                   LD C,4
+     117/    A18B : CD A2 A1                CALL GET_DATA
+     118/    A18E : CD 9D A1                CALL SET_RESULT
+     119/    A191 : 0E 04                   LD C,4
+     120/    A193 : CD A2 A1                CALL GET_DATA
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 3 - 2021/04/09 20時29分13秒
+
+
+     121/    A196 : CD 9D A1                CALL SET_RESULT
+     122/    A199 :                     ;
+     123/    A199 : CD 13 A2                CALL CE_OFF_SET
+     124/    A19C :                     ;
+     125/    A19C : C9                      RET
+     126/    A19D :                     ;
+     127/    A19D :                     
+     128/    A19D :                     ;------------------------------------
+     129/    A19D :                     ; 結果文字セット
+     130/    A19D :                     ;------------------------------------
+     131/    A19D :                     SET_RESULT:
+     132/    A19D : C6 30                   ADD A,30h   ; 数字文字コードへ
+     133/    A19F : 77                      LD (HL),A
+     134/    A1A0 : 2B                      DEC HL
+     135/    A1A1 : C9                      RET
+     136/    A1A2 :                     
+     137/    A1A2 :                     ;------------------------------------
+     138/    A1A2 :                     ; 指定ビット(Cレジスタ)分 読み出し Aレジスタへ
+     139/    A1A2 :                     ;------------------------------------
+     140/    A1A2 :                     GET_DATA:
+     141/    A1A2 : 51                      LD D,C
+     142/    A1A3 : 14                      INC D
+     143/    A1A4 : 06 00                   LD B,0
+     144/    A1A6 :                     _GET_DATA_LOOP:
+     145/    A1A6 : CD C9 A1                CALL CLK1
+     146/    A1A9 :                     ;
+     147/    A1A9 : 3E 0E                   LD A,OPN_REG_IOA
+     148/    A1AB : D3 80                   OUT (OPN_CTL),A
+     149/    A1AD :                     ;
+     150/    A1AD : DB 81                   IN A,(OPN_DATA)
+     151/    A1AF : E6 01                   AND 01h
+     152/    A1B1 : C4 BA A1                CALL NZ,_SHIFT_BIT
+     153/    A1B4 : 80                      ADD A,B
+     154/    A1B5 : 47                      LD B,A
+     155/    A1B6 : 0D                      DEC C
+     156/    A1B7 : C8                      RET Z
+     157/    A1B8 : 18 EC                   JR _GET_DATA_LOOP
+     158/    A1BA :                     
+     159/    A1BA :                     _SHIFT_BIT:
+     160/    A1BA : C5                      PUSH BC
+     161/    A1BB : F5                      PUSH AF
+     162/    A1BC : 7A                      LD A,D
+     163/    A1BD : 91                      SUB A,C
+     164/    A1BE : 4F                      LD C,A
+     165/    A1BF : F1                      POP AF
+     166/    A1C0 :                     _SHIFT_BIT_LOOP:
+     167/    A1C0 : 0D                      DEC C
+     168/    A1C1 : 28 04                   JR Z,_SHIFT_BIT_END
+     169/    A1C3 : CB 27                   SLA A
+     170/    A1C5 : 18 F9                   JR _SHIFT_BIT_LOOP
+     171/    A1C7 :                     _SHIFT_BIT_END:
+     172/    A1C7 : C1                      POP BC
+     173/    A1C8 : C9                      RET
+     174/    A1C9 :                     
+     175/    A1C9 :                     ;------------------------------------
+     176/    A1C9 :                     ; 1クロック ON→OFF
+     177/    A1C9 :                     ;------------------------------------
+     178/    A1C9 :                     CLK1:
+     179/    A1C9 : 3E 0F                   LD A,OPN_REG_IOB
+     180/    A1CB : D3 80                   OUT (OPN_CTL),A
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 4 - 2021/04/09 20時29分13秒
+
+
+     181/    A1CD :                     ;
+     182/    A1CD : 3A 49 A2                LD A,(OPN_IOB_DATA)
+     183/    A1D0 : F6 10                   OR CLK_ON
+     184/    A1D2 : D3 81                   OUT (OPN_DATA),A
+     185/    A1D4 : F5                      PUSH AF
+     186/    A1D5 : 7F                      LD A,A          ; DUMMY
+     187/    A1D6 : 7F                      LD A,A          ; DUMMY
+     188/    A1D7 : 7F                      LD A,A          ; DUMMY
+     189/    A1D8 : 7F                      LD A,A          ; DUMMY
+     190/    A1D9 : 3E 0F                   LD A,OPN_REG_IOB
+     191/    A1DB : D3 80                   OUT (OPN_CTL),A
+     192/    A1DD : F1                      POP AF
+     193/    A1DE : E6 EF                   AND CLK_OFF
+     194/    A1E0 : D3 81                   OUT (OPN_DATA),A
+     195/    A1E2 : 32 49 A2                LD (OPN_IOB_DATA),A
+     196/    A1E5 : C9                      RET
+     197/    A1E6 :                     
+     198/    A1E6 :                     ;------------------------------------
+     199/    A1E6 :                     ; WRピン ON
+     200/    A1E6 :                     ;------------------------------------
+     201/    A1E6 :                     WR_ON_SET:
+     202/    A1E6 : 3E 0F                   LD A,OPN_REG_IOB
+     203/    A1E8 : D3 80                   OUT (OPN_CTL),A
+     204/    A1EA :                     ;    
+     205/    A1EA : 3A 49 A2                LD A,(OPN_IOB_DATA)
+     206/    A1ED : F6 20                   OR WR_ON
+     207/    A1EF : D3 81                   OUT (OPN_DATA),A
+     208/    A1F1 : 32 49 A2                LD (OPN_IOB_DATA),A
+     209/    A1F4 : C9                      RET
+     210/    A1F5 :                     ;------------------------------------
+     211/    A1F5 :                     ; WRピン OFF
+     212/    A1F5 :                     ;------------------------------------
+     213/    A1F5 :                     WR_OFF_SET:
+     214/    A1F5 : 3E 0F                   LD A,OPN_REG_IOB
+     215/    A1F7 : D3 80                   OUT (OPN_CTL),A
+     216/    A1F9 :                     ;
+     217/    A1F9 : 3A 49 A2                LD A,(OPN_IOB_DATA)
+     218/    A1FC : E6 DF                   AND WR_OFF
+     219/    A1FE : D3 81                   OUT (OPN_DATA),A
+     220/    A200 : 32 49 A2                LD (OPN_IOB_DATA),A
+     221/    A203 : C9                      RET
+     222/    A204 :                     
+     223/    A204 :                     ;------------------------------------
+     224/    A204 :                     ; CEピン ON
+     225/    A204 :                     ;------------------------------------
+     226/    A204 :                     CE_ON_SET:
+     227/    A204 : 3E 0F                   LD A,OPN_REG_IOB
+     228/    A206 : D3 80                   OUT (OPN_CTL),A
+     229/    A208 :                     ;    
+     230/    A208 : 3A 49 A2                LD A,(OPN_IOB_DATA)
+     231/    A20B : F6 40                   OR CE_ON
+     232/    A20D : D3 81                   OUT (OPN_DATA),A
+     233/    A20F : 32 49 A2                LD (OPN_IOB_DATA),A
+     234/    A212 : C9                      RET
+     235/    A213 :                     ;------------------------------------
+     236/    A213 :                     ; CEピン OFF
+     237/    A213 :                     ;------------------------------------
+     238/    A213 :                     CE_OFF_SET:
+     239/    A213 : 3E 0F                   LD A,OPN_REG_IOB
+     240/    A215 : D3 80                   OUT (OPN_CTL),A
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 5 - 2021/04/09 20時29分13秒
+
+
+     241/    A217 :                     ;
+     242/    A217 : 3A 49 A2                LD A,(OPN_IOB_DATA)
+     243/    A21A : E6 BF                   AND CE_OFF
+     244/    A21C : D3 81                   OUT (OPN_DATA),A
+     245/    A21E : 32 49 A2                LD (OPN_IOB_DATA),A
+     246/    A221 : C9                      RET
+     247/    A222 :                     
+     248/    A222 :                     ;------------------------------------
+     249/    A222 :                     ; OPN初期化 ポートA IN、ポートB OUT
+     250/    A222 :                     ;------------------------------------
+     251/    A222 :                     INIT_OPN:
+     252/    A222 : 3E 07                   LD A,OPN_REG_CTL
+     253/    A224 : D3 80                   OUT (OPN_CTL),A
+     254/    A226 : DB 81                   IN  A,(OPN_DATA)
+     255/    A228 : E6 BF                   AND A,OPN_A_IN
+     256/    A22A : F6 80                   OR  A,OPN_B_OUT
+     257/    A22C : 32 48 A2                LD  (OPN_CTL_DATA),A
+     258/    A22F : D3 81                   OUT (OPN_DATA),A
+     259/    A231 :                     ;
+     260/    A231 : 3E 0F                   LD A,OPN_REG_IOB
+     261/    A233 : D3 80                   OUT (OPN_CTL),A
+     262/    A235 : 3E 00                   LD  A,0
+     263/    A237 : F6 20                   OR  A,WR_ON
+     264/    A239 : E6 BF                   AND A,CE_OFF
+     265/    A23B : D3 81                   OUT (OPN_DATA),A
+     266/    A23D : 00                      NOP
+     267/    A23E : 00                      NOP
+     268/    A23F : 32 49 A2                LD  (OPN_IOB_DATA),A
+     269/    A242 :                     ;
+     270/    A242 : C9                      RET
+     271/    A243 :                     ;
+     272/    A243 :                     ;
+     273/    A243 :                     ; RAM
+     274/    A243 :                     DATE_STR_PTR DS 2
+     275/    A245 :                     STR_PTR      DS 2
+     276/    A247 :                     STR_LEN      DS 1
+     277/    A248 :                     OPN_CTL_DATA DS 1
+     278/    A249 :                     OPN_IOB_DATA DS 1
+     279/    A24A :                     
+     280/    A24A :                         END
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 6 - 2021/04/09 20時29分13秒
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+*ARCHITECTURE :  "x86_64-apple-osx" - | *BIGENDIAN :                      0 - |
+*BRANCHEXT :                      0 - | *CASESENSITIVE :                  0 - |
+ CE_OFF :                       0BF - |  CE_OFF_SET :                 0A213 C |
+ CE_ON :                         40 - |  CE_ON_SET :                  0A204 C |
+ CLK1 :                       0A1C9 C |  CLK_OFF :                      0EF - |
+ CLK_ON :                        10 - | *CONSTPI :        3.141592653589793 - |
+*DATE :                "2021/04/09" - | *DATE_STR_PTR :               0A243 C |
+*FALSE :                          0 - | *FULLPMMU :                       1 - |
+ GET_DATA :                   0A1A2 C | *HAS64 :                          1 - |
+*HASDSP :                         0 - | *HASFPU :                         0 - |
+*HASPMMU :                        0 - | *INEXTMODE :                      0 - |
+ INIT_OPN :                   0A222 C | *INLWORDMODE :                    0 - |
+*INMAXMODE :                      0 - | *INSRCMODE :                      0 - |
+*INSUPMODE :                      0 - | *LISTON :                         1 - |
+*MACEXP :                         7 - | *MAIN :                       0A100 C |
+*MOMCPU :                        80 - | *MOMCPUNAME :                 "Z80" - |
+*NESTMAX :                      100 - | *NULL :                           0 - |
+ OPN_A_IN :                     0BF - | *OPN_A_OUT :                     40 - |
+*OPN_B_IN :                      7F - |  OPN_B_OUT :                     80 - |
+ OPN_CTL :                       80 - |  OPN_CTL_DATA :               0A248 C |
+ OPN_DATA :                      81 - |  OPN_IOB_DATA :               0A249 C |
+ OPN_REG_CTL :                    7 - |  OPN_REG_IOA :                   0E - |
+ OPN_REG_IOB :                   0F - | *PACKING :                        0 - |
+*PADDING :                        1 - | *RELAXED :                        0 - |
+ SET_RESULT :                 0A19D C | *STR_LEN :                    0A247 C |
+*STR_PTR :                    0A245 C |
+*TIME :               "20\-026\-103\-12629\-027\-120\-12213\-025\-089\-110" - |
+*TRUE :                           1 - | *VERSION :                     142F - |
+ WR_OFF :                       0DF - |  WR_OFF_SET :                 0A1F5 C |
+ WR_ON :                         20 - | *WR_ON_SET :                  0A1E6 C |
+*Z80SYNTAX :                      0 - |  _GET_DATA_LOOP :             0A1A6 C |
+ _SHIFT_BIT :                 0A1BA C |  _SHIFT_BIT_END :             0A1C7 C |
+ _SHIFT_BIT_LOOP :            0A1C0 C |
+
+     63 symbols
+     37 unused symbols
+
+ AS V1.42 Beta [Bld 180] - Source File RTC4543_RD-YM2203.asm - Page 7 - 2021/04/09 20時29分13秒
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+
+0.01 seconds assembly time
+
+    280 lines source file
+      2 passes
+      0 errors
+      0 warnings

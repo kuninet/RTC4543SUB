@@ -1,0 +1,23 @@
+{
+  "name": "",
+  "isOrdered": true,
+  "folders": {
+    "KiCAD": {
+      "name": "KiCAD",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "src": {
+      "name": "src",
+      "isOrdered": true,
+      "folders": {},
+      "files": {
+        "README": 0
+      }
+    }
+  },
+  "files": {
+    "README": 0
+  }
+}
